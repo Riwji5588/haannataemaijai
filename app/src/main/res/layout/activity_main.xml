@@ -121,7 +121,7 @@
         android:id="@+id/textViewOutput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ข้อมูลที่กรอกจะแสดงที่นี่1"
+        android:text="ข้อมูลที่กรอกจะแสดงที่นี่12"
         android:layout_marginTop="16dp"
         android:textSize="18sp" />
 
