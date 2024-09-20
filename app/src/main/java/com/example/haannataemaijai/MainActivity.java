@@ -17,6 +17,8 @@ import androidx.appcompat.app.AppCompatActivity;
 //import  log
 import android.util.Log;
 import java.util.ArrayList;
+//import dataArray
+
 public class MainActivity extends AppCompatActivity {
 
     EditText itemName, itemPrice , Person;
@@ -41,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         clearButton = findViewById(R.id.clearbtn);
         Person = findViewById(R.id.Person);
         addPerson = findViewById(R.id.add_person);
-        textViewOutput = findViewById(R.id.textViewOutput);
+//        textViewOutput = findViewById(R.id.textViewOutput);
         // Add item button click listener
         addItemButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         addPerson.setOnClickListener(new View.OnClickListener() {
+            TableLayout tablePerson = findViewById(R.id.tablePerson);
             @Override
             public void onClick(View v) {
                 // รับค่าจาก EditText
@@ -125,22 +128,38 @@ public class MainActivity extends AppCompatActivity {
                     // เคลียร์ช่อง EditText หลังกรอกข้อมูล
                     Person.setText("");
                 } else {
-                    textViewOutput.setText("กรุณากรอกข้อมูลก่อน");
+//                    textViewOutput.setText("กรุณากรอกข้อมูลก่อน");
                 }
             }
             private void updateTextView() {
-                StringBuilder allData = new StringBuilder();
-                //log data in allData
-//               Log.d("dataPerson",inputDataList);
-                //Log data in inputDataList position 0
-                Log.d("dataPerson",inputDataList.get(0));
-                // วนลูปผ่านข้อมูลทั้งหมดในลิสต์และเพิ่มใน StringBuilder
-                for (String data : inputDataList) {
-                    allData.append(data).append("\n");  // เพิ่มข้อมูลแต่ละรายการลงไป
-                }
+//                StringBuilder allData = new StringBuilder();
+//                Log.d("dataPerson",inputDataList.get(0));
+//                for (String data : inputDataList) {
+//                    allData.append(data).append("\n");
+//                }
+//                textViewOutput.setText(allData.toString());
+                String[] dataArray = {"ข้อมูล 1", "ข้อมูล 2", "ข้อมูล 3"};
+                for (String data : dataArray) {
+                    // สร้างแถวใหม่
+                    TableRow tableRow = new TableRow(MainActivity.this);
 
-                // แสดงข้อมูลใน TextView
-                textViewOutput.setText(allData.toString());
+                    // สร้างข้อความและตั้งค่า
+                    TextView textView = new TextView(MainActivity.this);
+                    textView.setText(data);
+                    tableRow.addView(textView);
+
+                    // สร้างปุ่มและตั้งค่า
+                    Button button = new Button(MainActivity.this);
+                    button.setText("คลิก");
+                    // กำหนดเหตุการณ์เมื่อกดปุ่ม
+                    button.setOnClickListener(view -> {
+                        // ทำอะไรบางอย่างเมื่อกดปุ่ม
+                    });
+                    tableRow.addView(button);
+
+                    // เพิ่มแถวลงในตาราง
+                    tablePerson.addView(tableRow);
+                }
             }
         });
 
