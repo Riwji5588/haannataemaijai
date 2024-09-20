@@ -1,12 +1,1 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-
-    <corners android:radius="10dp" /> <!-- ปรับค่า radius ตามต้องการ -->
-    <solid android:color="#f0f0f0" /> <!-- สีพื้นหลัง -->
-
-    <!-- คุณสามารถเพิ่ม border ได้ตามต้องการ เช่น -->
-    <stroke
-        android:width="1dp"
-        android:color="#cccccc" /> <!-- สีของขอบ -->
-</shape>
