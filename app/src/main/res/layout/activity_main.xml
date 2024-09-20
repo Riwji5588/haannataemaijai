@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Input for item name -->
+    <EditText
+        android:id="@+id/itemName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter item name"
+        android:inputType="text" />
+
+    <!-- Input for item price -->
+    <EditText
+        android:id="@+id/itemPrice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter item price"
+        android:inputType="numberDecimal" />
+
+    <!-- Button to add item -->
+    <Button
+        android:id="@+id/addItemButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Item" />
+
+    <!-- TableLayout for the list of items -->
+    <TableLayout
+        android:id="@+id/itemsTable"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:stretchColumns="1"
+        android:paddingTop="16dp"
+        android:background="#f0f0f0">
+
+        <!-- Table header -->
+        <TableRow>
+            <TextView
+                android:text="No."
+                android:textStyle="bold"
+                android:padding="8dp" />
+            <TextView
+                android:text="Item"
+                android:textStyle="bold"
+                android:padding="8dp" />
+            <TextView
+                android:text="Price"
+                android:textStyle="bold"
+                android:padding="8dp" />
+        </TableRow>
+    </TableLayout>
+
+    <!-- Button to calculate the total cost -->
+    <Button
+        android:id="@+id/calculateButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Calculate Total" />
+
+    <!-- TextView to display the total result -->
+    <TextView
+        android:id="@+id/totalResult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Total will be shown here"
+        android:paddingTop="20dp"
+        android:textSize="18sp"
+        android:textColor="#000000" />
+
+</LinearLayout>
