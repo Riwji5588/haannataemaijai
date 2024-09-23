@@ -149,6 +149,14 @@
                     android:layout_weight="1"/>
 
                 <TextView
+                    android:text="Count"
+                    android:gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/count_money"
+                    android:layout_weight="1" />
+
+                <TextView
                     android:text="Setting"
                     android:gravity="center"
                     android:layout_width="wrap_content"
@@ -156,21 +164,6 @@
                     android:id="@+id/textView23"
                     android:layout_weight="1"/>
 
-                <!--                <TextView-->
-                <!--                    android:text="Perfect Simple"-->
-                <!--                    android:gravity="center"-->
-                <!--                    android:layout_width="wrap_content"-->
-                <!--                    android:layout_height="wrap_content"-->
-                <!--                    android:id="@+id/textView15"-->
-                <!--                    android:layout_weight="1"/>-->
-
-                <!--                <TextView-->
-                <!--                    android:text="Perfect Continuous"-->
-                <!--                    android:gravity="center"-->
-                <!--                    android:layout_width="wrap_content"-->
-                <!--                    android:layout_height="wrap_content"-->
-                <!--                    android:id="@+id/textView8"-->
-                <!--                    android:layout_weight="1"/>-->
             </TableRow>
 
             <TableRow
