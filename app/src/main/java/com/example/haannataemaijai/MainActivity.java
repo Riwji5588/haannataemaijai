@@ -1,9 +1,13 @@
 package com.example.haannataemaijai;
 import androidx.appcompat.app.AppCompatActivity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -112,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
 
         addPerson.setOnClickListener(new View.OnClickListener() {
             TableLayout tablePerson = findViewById(R.id.tablePerson);
+
             @Override
             public void onClick(View v) {
                 // รับค่าจาก EditText
@@ -131,38 +136,57 @@ public class MainActivity extends AppCompatActivity {
 //                    textViewOutput.setText("กรุณากรอกข้อมูลก่อน");
                 }
             }
-            private void updateTextView() {
-//                StringBuilder allData = new StringBuilder();
-//                Log.d("dataPerson",inputDataList.get(0));
-//                for (String data : inputDataList) {
-//                    allData.append(data).append("\n");
-//                }
-//                textViewOutput.setText(allData.toString());
-                String[] dataArray = {"ข้อมูล 1", "ข้อมูล 2", "ข้อมูล 3"};
-                for (String data : dataArray) {
-                    // สร้างแถวใหม่
-                    TableRow tableRow = new TableRow(MainActivity.this);
 
-                    // สร้างข้อความและตั้งค่า
+            private void updateTextView() {
+                // Clear previous rows in the table
+                tablePerson.removeViews(1, tablePerson.getChildCount() - 1);
+
+                for (String data : inputDataList) {
+                    // Create a new TableRow
+                    TableRow tableRow = new TableRow(MainActivity.this);
+                    tableRow.setLayoutParams(new TableRow.LayoutParams(
+                            TableRow.LayoutParams.MATCH_PARENT,
+                            TableRow.LayoutParams.WRAP_CONTENT
+                    ));
+
+                    // Create TextView for the data
                     TextView textView = new TextView(MainActivity.this);
                     textView.setText(data);
+                    TableRow.LayoutParams textParams = new TableRow.LayoutParams(
+                            0, // Width: 0 for weight distribution
+                            TableRow.LayoutParams.WRAP_CONTENT,
+                            1.0f // Weight to take up remaining space
+                    );
+                    textView.setLayoutParams(textParams);
                     tableRow.addView(textView);
 
-                    // สร้างปุ่มและตั้งค่า
+                    // Create button and set text
                     Button button = new Button(MainActivity.this);
-                    button.setText("คลิก");
-                    // กำหนดเหตุการณ์เมื่อกดปุ่ม
-                    button.setOnClickListener(view -> {
-                        // ทำอะไรบางอย่างเมื่อกดปุ่ม
-                    });
+                    button.setText("Setting");
+
+                    // Set click event for the button
+                    button.setOnClickListener(view -> showSettingsDialog()
+                            // Do something when the button is clicked
+                    );
+
+                    // Set layout parameters for the button
+                    TableRow.LayoutParams buttonParams = new TableRow.LayoutParams(
+                            TableRow.LayoutParams.WRAP_CONTENT, // Width based on content
+                            TableRow.LayoutParams.WRAP_CONTENT // Height
+                    );
+                    buttonParams.setMargins(20, 0, 200, 0); // Adjust margin as needed
+                    button.setLayoutParams(buttonParams); // Set the layout parameters to the button
+
+                    // Add button to the TableRow
                     tableRow.addView(button);
 
-                    // เพิ่มแถวลงในตาราง
+                    // Add the row to the TableLayout
                     tablePerson.addView(tableRow);
                 }
             }
-        });
 
+
+        });
 
 
         // Calculate button click listener
@@ -173,7 +197,28 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         //create function clearData
+
+    }
+
+    private void showSettingsDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Settings")
+                .setMessage("Adjust your settings here.")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // Handle OK action
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.dismiss();
+                    }
+                });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
 
     }
 }
