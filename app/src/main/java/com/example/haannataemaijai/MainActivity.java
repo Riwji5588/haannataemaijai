@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
                     button.setText("Setting");
 
                     // Set click event for the button
-                    button.setOnClickListener(view -> showSettingsDialog(data, data_item)
+                    button.setOnClickListener(view -> showSettingsDialog(data)
                             // Do something when the button is clicked
                     );
 
@@ -221,10 +221,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void showSettingsDialog(HashMap<String, Object> data, ArrayList<HashMap<String, Object>> dataItem) {
+    private void showSettingsDialog(HashMap<String, Object> data) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Settings");
-        Log.d("MainActivity_user", "data user: " + data.get("select"));
+//        Log.d("MainActivity_user", "data user: " + data.get("select"));
         // สร้าง LinearLayout เพื่อเก็บ CheckBox
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -232,40 +232,15 @@ public class MainActivity extends AppCompatActivity {
         // เก็บ CheckBox เพื่อเช็คสถานะตอนกด OK
         ArrayList<CheckBox> checkBoxList = new ArrayList<>();
 
+        Log.d("MainActivity_user_person", "data user: " + inputDataList);
+
         // สร้าง CheckBox จาก dataItem
-        for (HashMap<String, Object> item : dataItem) {
+        for (HashMap<String, Object> item : data_item) {
             String product = (String) item.get("product");
             double price = (double) item.get("price");
             CheckBox checkBox = new CheckBox(this);
             checkBox.setText(product + " - " + price);
             layout.addView(checkBox);
-
-            // เพิ่ม CheckBox ในรายการ
-            checkBoxList.add(checkBox);
-            Log.d("MainActivity_item2", "data !: " + data.get("select"));
-            //check who select item in inputDataList
-            for (HashMap<String, Object> item1 : dataItem) {
-                if (data.get("select") != null) {
-                    Log.d("MainActivity_item2", "data !: " + data.get("select"));
-                    ArrayList<HashMap<String, Object>> selectList = (ArrayList<HashMap<String, Object>>) data.get("select");
-                    Log.d("MainActivity_item2", "data: " + data.get("select") + ',' + selectList);
-                    assert selectList != null;
-                    for (HashMap<String, Object> item2 : selectList) {
-                        Log.d("MainActivity_item2", "item1 == item2 : " + item1 + ',' + item2);
-                        if (Objects.equals(item1.get("product"), item2.get("product"))) {
-                            Log.d("MainActivity_item2", "item1 == item2 : successe");
-                            checkBox.setChecked(true);
-                        } else {
-                            Log.d("MainActivity_item2", "item1 == item2 : Eorr");
-                        }
-                    }
-                }
-            }
-
-
-        }
-
-        // เพิ่ม layout ที่มี CheckBox ลงใน AlertDialog
         builder.setView(layout);
         // set Padding
         layout.setPadding(50, 40, 50, 10);
@@ -282,45 +257,11 @@ public class MainActivity extends AppCompatActivity {
                     ArrayList<HashMap<String, Object>> selectList = new ArrayList<>();
                     ArrayList<HashMap<String, Object>> selectList_food = new ArrayList<>();
                     CheckBox checkBox = checkBoxList.get(i);
-                    if (checkBox.isChecked()) {
-                        String product = (String) dataItem.get(i).get("product");
-                        double price = (double) dataItem.get(i).get("price");
-                        //check who select item in inputDataList
-                        HashMap<String, Object> person = new HashMap<>();
-                        person.put("name", data.get("name"));
-//                        person.put("price", price);
-                        selectList.add(person);
-                        dataItem.get(i).put("select", selectList);
-                        //add or put selectList to data_Item
-                        HashMap<String, Object> food1 = new HashMap<>();
-                        food1.put("product", product);
-                        food1.put("price", price);
-                        selectList_food.add(food1);
-                        data.put("select", selectList_food);
-                        Log.d("MainActivity_select", "เพิ่มเงินให้กับ: " + product + " จำนวน: " + price);
-                        //clear ค่า selectList , selectList_food
 
-                        // คำนวณราคาทั้งหมดของรายการที่เลือก
-                        calculator();
-
+                    if( checkBox.isChecked() ){
+                    Log.d( "MainActivity_checkBox", "เลือก: " + checkBox );
                     }
-                    Log.d("dataItem", "dataItem: " + dataItem.get(i));
-                    Log.d("dataPefrerson", "Person: " + data);
                 }
-            }
-
-            //function calculator all select item devide number of person
-            private void calculator() {
-                // check select item
-                for (HashMap<String, Object> item : dataItem) {
-                    Log.d("MainActivity_item", "data item: " + item);
-                }
-                // คำนวณราคาทั้งหมดของรายการที่เลือก
-                totalResult.setText("Total cost: " + String.format("%.2f", totalCost));
-                // คำนวณราคาทั้งหมดของรายการที่เลือก
-                count_money.setText("Total cost: " + String.format("%.2f", totalCost));
-
-
             }
         });
 
@@ -342,6 +283,5 @@ public class MainActivity extends AppCompatActivity {
 //        // ที่นี่คุณสามารถเพิ่มโค้ดการจัดการบัญชีของคุณได้ เช่น เพิ่มเงินในฐานข้อมูล
 //        Log.d("MainActivity", "เพิ่มเงินให้กับ: " + name + " จำนวน: " + amount);
 //    }
-
-
+}
 }
