@@ -224,44 +224,44 @@ public class MainActivity extends AppCompatActivity {
     private void showSettingsDialog(HashMap<String, Object> data) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Settings");
-//        Log.d("MainActivity_user", "data user: " + data.get("select"));
-        // สร้าง LinearLayout เพื่อเก็บ CheckBox
+
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-//        double total = (double);
-        // เก็บ CheckBox เพื่อเช็คสถานะตอนกด OK
+
         ArrayList<CheckBox> checkBoxList = new ArrayList<>();
 
-        Log.d("MainActivity_user_person", "data user: " + inputDataList);
+        Log.d("MainActivity_user_person", "data user: " + data);
 
-        // สร้าง CheckBox จาก dataItem
+        // สร้าง CheckBox สำหรับแต่ละ item
         for (HashMap<String, Object> item : data_item) {
             String product = (String) item.get("product");
             double price = (double) item.get("price");
             CheckBox checkBox = new CheckBox(this);
             checkBox.setText(product + " - " + price);
+            checkBoxList.add(checkBox);
             layout.addView(checkBox);
+        }
+
         builder.setView(layout);
         // set Padding
         layout.setPadding(50, 40, 50, 10);
 
         // ปุ่ม OK
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-
-            double currentPrice = Double.parseDouble(data.get("price").toString());
-
             @Override
             public void onClick(DialogInterface dialog, int id) {
-                // เมื่อผู้ใช้กด OK ตรวจสอบว่า CheckBox ใดถูกเลือก
-                for (int i = 0; i < checkBoxList.size(); i++) {
-                    ArrayList<HashMap<String, Object>> selectList = new ArrayList<>();
-                    ArrayList<HashMap<String, Object>> selectList_food = new ArrayList<>();
-                    CheckBox checkBox = checkBoxList.get(i);
-
-                    if( checkBox.isChecked() ){
-                    Log.d( "MainActivity_checkBox", "เลือก: " + checkBox );
-                    }
+                double currentPrice = Double.parseDouble(data.get("price").toString());
+                Log.d("MainActivity_user_person", "checkBoxList: " + checkBoxList);
+                // ตรวจสอบว่า CheckBox ใดถูกเลือก
+                ArrayList<String> selectedItems = new ArrayList<>();
+                for (CheckBox checkBox : checkBoxList) {
+                    if (checkBox.isChecked()) {
+                        selectedItems.add(checkBox.getText().toString());
+                        // เพิ่มราคาหรือประมวลผลอื่น ๆ ตามที่ต้องการ
+                     }
                 }
+                // แปลง ArrayList เป็น String
+                Log.d("MainActivity_user_person", "Selected items: " + selectedItems.toString());
             }
         });
 
@@ -278,10 +278,4 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // ตัวอย่างฟังก์ชันสำหรับเพิ่มเงินให้กับ account
-//    private void addMoneyToAccount(String name, double amount) {
-//        // ที่นี่คุณสามารถเพิ่มโค้ดการจัดการบัญชีของคุณได้ เช่น เพิ่มเงินในฐานข้อมูล
-//        Log.d("MainActivity", "เพิ่มเงินให้กับ: " + name + " จำนวน: " + amount);
-//    }
-}
 }
