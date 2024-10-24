@@ -12,7 +12,13 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ArrayList;
 
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.HashMap;
 //import checkbox
 import android.widget.CheckBox;
@@ -38,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     double totalCost = 0;
     private final ArrayList<HashMap<String, Object>> inputDataList = new ArrayList<>();
     private ArrayList<HashMap<String, Object>> data_item = new ArrayList<>();    //create data_item 2 dimention
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
         Person = findViewById(R.id.Person);
         addPerson = findViewById(R.id.add_person);
         count_money = findViewById(R.id.count_money);
+        TableLayout tablePerson = findViewById(R.id.tablePerson);
 //        textViewOutput = findViewById(R.id.textViewOutput);
         // Add item button click listener
         addItemButton.setOnClickListener(new View.OnClickListener() {
@@ -70,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
                     no.setPadding(8, 8, 8, 8); // กำหนด padding
                     //add data item { name , price }to data_item
                     HashMap<String, Object> item1 = new HashMap<>();
+                    item1.put("id", itemsTable.getChildCount());
                     item1.put("product", name);
                     item1.put("price", price);
                     data_item.add(item1);
@@ -128,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         addPerson.setOnClickListener(new View.OnClickListener() {
-            TableLayout tablePerson = findViewById(R.id.tablePerson);
+
 
             @Override
             public void onClick(View v) {
@@ -177,26 +186,45 @@ public class MainActivity extends AppCompatActivity {
                     //set padding
                     textView.setPadding(20, 25, 12, 25);
                     tableRow.addView(textView);
+                    // add column price
+                    TextView textViewPrice = new TextView(MainActivity.this);
+                    textViewPrice.setText(String.valueOf(data.get("price")));
+                    TableRow.LayoutParams textParamsPrice = new TableRow.LayoutParams(
+                            0, // Width: 0 for weight distribution
+                            TableRow.LayoutParams.WRAP_CONTENT,
+                            1.0f // Weight to take up remaining space
+                    );
+                    textViewPrice.setLayoutParams(textParamsPrice);
+                    //set padding
+                    textViewPrice.setPadding(20, 25, 12, 25);
+                    tableRow.addView(textViewPrice);
+
 
                     // Create button and set text
                     Button button = new Button(MainActivity.this);
-                    button.setText("Setting");
+                    button.setText("เลือกสินค้า");
 
-                    // Set click event for the button
-                    button.setOnClickListener(view -> showSettingsDialog(data)
-                            // Do something when the button is clicked
-                    );
+// Set background color and rounded corners
+                    button.setBackground(getResources().getDrawable(R.drawable.rounded_button, null));
+                    button.setTextColor(getResources().getColor(R.color.white, null)); // Set text color
+                    button.setPadding(20, 10, 20, 10); // Add padding for better appearance
 
-                    // Set layout parameters for the button
+// Set click event for the button
+                    button.setOnClickListener(view -> showSettingsDialog(data));
+
+// Set layout parameters for the button
                     TableRow.LayoutParams buttonParams = new TableRow.LayoutParams(
                             TableRow.LayoutParams.WRAP_CONTENT, // Width based on content
                             TableRow.LayoutParams.WRAP_CONTENT // Height
                     );
-                    buttonParams.setMargins(20, 0, 200, 0); // Adjust margin as needed
+                    buttonParams.setMargins(20, 0, 200, 10); // Adjust margin as needed
                     button.setLayoutParams(buttonParams); // Set the layout parameters to the button
 
-                    // Add button to the TableRow
+// Add button to the TableRow
                     tableRow.addView(button);
+
+
+
 
                     // Add the row to the TableLayout
                     tablePerson.addView(tableRow);
@@ -223,44 +251,212 @@ public class MainActivity extends AppCompatActivity {
 
     private void showSettingsDialog(HashMap<String, Object> data) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Settings");
-//        Log.d("MainActivity_user", "data user: " + data.get("select"));
-        // สร้าง LinearLayout เพื่อเก็บ CheckBox
+        builder.setTitle("เลือกสินค้า");
+        TableLayout tablePerson = findViewById(R.id.tablePerson);
+
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-//        double total = (double);
-        // เก็บ CheckBox เพื่อเช็คสถานะตอนกด OK
+
         ArrayList<CheckBox> checkBoxList = new ArrayList<>();
 
-        Log.d("MainActivity_user_person", "data user: " + inputDataList);
-
-        // สร้าง CheckBox จาก dataItem
+//        Log.d("MainActivity_user_person", "data user: " + inputDataList);
+        Object selectedItems = data.get("select");
+        // initialize selectedItems
+        if (selectedItems == null) {
+            selectedItems = new ArrayList<>();
+        }
+        Log.d("MainActivity_user_person", "data item: " + selectedItems);
+        // สร้าง CheckBox สำหรับแต่ละ item
         for (HashMap<String, Object> item : data_item) {
             String product = (String) item.get("product");
             double price = (double) item.get("price");
             CheckBox checkBox = new CheckBox(this);
             checkBox.setText(product + " - " + price);
+            for(HashMap<String, Object> item1 : (ArrayList<HashMap<String, Object>>) selectedItems){
+                if( item1.get("product").equals(product)){
+                    checkBox.setChecked(true);
+                }
+            }
+            checkBoxList.add(checkBox);
             layout.addView(checkBox);
+        }
+        for (HashMap<String, Object> person : inputDataList) {
+            int current_price = 0;
+            person.put("price", current_price);
+        }
+
         builder.setView(layout);
         // set Padding
         layout.setPadding(50, 40, 50, 10);
 
         // ปุ่ม OK
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-
-            double currentPrice = Double.parseDouble(data.get("price").toString());
-
             @Override
             public void onClick(DialogInterface dialog, int id) {
-                // เมื่อผู้ใช้กด OK ตรวจสอบว่า CheckBox ใดถูกเลือก
+                Log.d("MainActivity_user_person", "checkBoxList: " + checkBoxList);
+                // ตรวจสอบว่า CheckBox ใดถูกเลือก
+                ArrayList<HashMap<String, Object>> selectedItems = new ArrayList<>();
+//                ArrayList<HashMap<String, Object>>  = new ArrayList<>();
                 for (int i = 0; i < checkBoxList.size(); i++) {
-                    ArrayList<HashMap<String, Object>> selectList = new ArrayList<>();
-                    ArrayList<HashMap<String, Object>> selectList_food = new ArrayList<>();
-                    CheckBox checkBox = checkBoxList.get(i);
+                    if (checkBoxList.get(i).isChecked()) {
+                        // เพิ่มรายการที่ถูกเลือกลงใน ArrayList
+                        Log.d("MainActivity_user_person", "Selected items: " + i);
+                        selectedItems.add(data_item.get(i));
 
-                    if( checkBox.isChecked() ){
-                    Log.d( "MainActivity_checkBox", "เลือก: " + checkBox );
+                     }
+                }
+                data.put("select", selectedItems);
+                //loop in data_item
+                // สร้าง Map เพื่อเก็บจำนวนคนที่เลือกแต่ละ product
+                Map<String, Integer> productCountMap = new HashMap<>();
+
+// Loop ผ่าน data_item เพื่อรวบรวมจำนวนคนที่เลือกแต่ละ product
+                for (HashMap<String, Object> item : data_item) {
+                    String productName = (String) item.get("product");
+                    Double price = (Double) item.get("price");
+
+                    if (price == null) {
+                        Log.d("MainActivity_user_price", "price is null, skipping item.");
+                        continue;
                     }
+
+                    Log.d("MainActivity_user_price", "price items: " + price);
+
+                    // Loop ผ่าน inputDataList เพื่อเก็บจำนวนคนที่เลือก product
+                    for (HashMap<String, Object> person : inputDataList) {
+                        Object selectedItems_person = person.get("select");
+
+                        if (selectedItems_person == null) {
+                            selectedItems_person = new ArrayList<>();
+                        }
+
+                        // นับจำนวนคนที่เลือก product เดียวกัน
+                        for (HashMap<String, Object> item3 : (ArrayList<HashMap<String, Object>>) selectedItems_person) {
+                            if (productName.equals(item3.get("product"))) {
+                                productCountMap.put(productName, productCountMap.getOrDefault(productName, 0) + 1);
+                            }
+                        }
+                    }
+                }
+
+// Loop ผ่าน data_item อีกครั้งเพื่อแจกจ่ายราคา
+                for (HashMap<String, Object> item : data_item) {
+                    String productName = (String) item.get("product");
+                    Double price = (Double) item.get("price");
+
+                    if (price == null) {
+                        Log.d("MainActivity_user_price", "price is null, skipping item.");
+                        continue;
+                    }
+
+                    int count = productCountMap.getOrDefault(productName, 1); // ป้องกัน division by zero
+
+                    // คำนวณราคาต่อคน
+                    double price_per_person = price / count;
+
+                    // อัปเดตราคาในแต่ละบุคคล
+                    for (HashMap<String, Object> person : inputDataList) {
+                        Object selectedItems_person = person.get("select");
+
+                        if (selectedItems_person == null) {
+                            selectedItems_person = new ArrayList<>();
+                        }
+
+                        // ตรวจสอบว่าบุคคลนี้เลือก product นี้หรือไม่
+                        for (HashMap<String, Object> item3 : (ArrayList<HashMap<String, Object>>) selectedItems_person) {
+                            if (productName.equals(item3.get("product"))) {
+                                Double current_price = person.get("price") instanceof Integer
+                                        ? ((Integer) person.get("price")).doubleValue()
+                                        : (Double) person.get("price");
+
+                                if (current_price == null) {
+                                    Log.d("MainActivity_user_price", "current_price is null, skipping person.");
+                                    continue;
+                                }
+
+                                // อัปเดตราคาให้กับบุคคลนี้
+                                double new_price = current_price + price_per_person;
+                                person.put("price", new_price);
+
+                                Log.d("MainActivity_user_price", "Updated price for person: " + new_price);
+                            }
+                        }
+                    }
+                }
+
+
+
+
+
+
+                updateTextView();
+                // แปลง ArrayList เป็น String
+                Log.d("MainActivity_user_person", "Selected items: " + selectedItems);
+                Log.d("MainActivity_user_person", "Person Selected items: " + inputDataList);
+
+            }
+            private void updateTextView() {
+                // Clear previous rows in the table
+                tablePerson.removeViews(1, tablePerson.getChildCount() - 1);
+
+                for (HashMap<String, Object> data : inputDataList) {
+                    // Create a new TableRow
+                    TableRow tableRow = new TableRow(MainActivity.this);
+                    tableRow.setLayoutParams(new TableRow.LayoutParams(
+                            TableRow.LayoutParams.MATCH_PARENT,
+                            TableRow.LayoutParams.WRAP_CONTENT
+                    ));
+
+                    // Create TextView for the data
+                    TextView textView = new TextView(MainActivity.this);
+                    textView.setText((String) data.get("name"));
+                    TableRow.LayoutParams textParams = new TableRow.LayoutParams(
+                            0, // Width: 0 for weight distribution
+                            TableRow.LayoutParams.WRAP_CONTENT,
+                            1.0f // Weight to take up remaining space
+                    );
+                    textView.setLayoutParams(textParams);
+                    //set padding
+                    textView.setPadding(20, 25, 12, 25);
+                    tableRow.addView(textView);
+                    // add column price
+                    TextView textViewPrice = new TextView(MainActivity.this);
+                    textViewPrice.setText(String.valueOf(data.get("price")));
+                    TableRow.LayoutParams textParamsPrice = new TableRow.LayoutParams(
+                            0, // Width: 0 for weight distribution
+                            TableRow.LayoutParams.WRAP_CONTENT,
+                            1.0f // Weight to take up remaining space
+                    );
+                    textViewPrice.setLayoutParams(textParamsPrice);
+                    //set padding
+                    textViewPrice.setPadding(20, 25, 12, 25);
+                    tableRow.addView(textViewPrice);
+
+
+                    // Create button and set text
+                    Button button = new Button(MainActivity.this);
+                    button.setText("Setting");
+
+                    // Set click event for the button
+                    button.setOnClickListener(view -> showSettingsDialog(data)
+                            // Do something when the button is clicked
+                    );
+
+                    // Set layout parameters for the button
+                    TableRow.LayoutParams buttonParams = new TableRow.LayoutParams(
+                            TableRow.LayoutParams.WRAP_CONTENT, // Width based on content
+                            TableRow.LayoutParams.WRAP_CONTENT // Height
+                    );
+                    buttonParams.setMargins(20, 0, 200, 0); // Adjust margin as needed
+                    button.setLayoutParams(buttonParams); // Set the layout parameters to the button
+
+                    // Add button to the TableRow
+                    tableRow.addView(button);
+
+
+
+                    // Add the row to the TableLayout
+                    tablePerson.addView(tableRow);
                 }
             }
         });
@@ -278,10 +474,4 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // ตัวอย่างฟังก์ชันสำหรับเพิ่มเงินให้กับ account
-//    private void addMoneyToAccount(String name, double amount) {
-//        // ที่นี่คุณสามารถเพิ่มโค้ดการจัดการบัญชีของคุณได้ เช่น เพิ่มเงินในฐานข้อมูล
-//        Log.d("MainActivity", "เพิ่มเงินให้กับ: " + name + " จำนวน: " + amount);
-//    }
-}
 }

@@ -2,4 +2,7 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="button_normal">#3F51B5</color> <!-- สีปุ่มปกติ -->
+    <color name="button_pressed">#303F9F</color> <!-- สีปุ่มเมื่อถูกกด -->
+
 </resources>
