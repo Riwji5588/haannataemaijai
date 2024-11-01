@@ -1,43 +1,33 @@
 package com.example.haannataemaijai;
-import androidx.appcompat.app.AppCompatActivity;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.view.Gravity;
+import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.ArrayList;
 
+import android.database.Cursor;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.HashMap;
-//import checkbox
-import android.widget.CheckBox;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-import androidx.appcompat.app.AppCompatActivity;
-//import  log
-import android.util.Log;
-import java.util.ArrayList;
-import java.util.Objects;
-//import dataArray
 
 public class MainActivity extends AppCompatActivity {
 
     EditText itemName, itemPrice , Person;
-    Button addItemButton, calculateButton , clearButton , addPerson;
+    Button addItemButton, calculateButton , clearButton , addPerson , clear_person;
     TableLayout itemsTable;
     TextView totalResult, textViewOutput, count_money;
 
@@ -45,78 +35,56 @@ public class MainActivity extends AppCompatActivity {
     private final ArrayList<HashMap<String, Object>> inputDataList = new ArrayList<>();
     private ArrayList<HashMap<String, Object>> data_item = new ArrayList<>();    //create data_item 2 dimention
 
+    DBHelper dbh;
+    private String name;
+    private double price;
+//    private ViewGroup tablePerson;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        dbh = new DBHelper(this);
+
+//        showInfo("Welcome", "Welcome to Haan Nataemaijai");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         // Initialize views
         itemName = findViewById(R.id.itemName);
         itemPrice = findViewById(R.id.itemPrice);
+        itemsTable = findViewById(R.id.itemsTable);
+
         addItemButton = findViewById(R.id.addItemButton);
         calculateButton = findViewById(R.id.calculateButton1);
-        itemsTable = findViewById(R.id.itemsTable);
+
         totalResult = findViewById(R.id.totalResult);
         clearButton = findViewById(R.id.clearbtn);
+
         Person = findViewById(R.id.Person);
         addPerson = findViewById(R.id.add_person);
         count_money = findViewById(R.id.count_money);
         TableLayout tablePerson = findViewById(R.id.tablePerson);
+        clear_person = findViewById(R.id.clear_person);
 //        textViewOutput = findViewById(R.id.textViewOutput);
         // Add item button click listener
+        updateTextView(tablePerson);
+        updateItemGroup();
         addItemButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String name = itemName.getText().toString();
                 String priceStr = itemPrice.getText().toString();
+                updateTextView(tablePerson);
 
                 if (!name.isEmpty() && !priceStr.isEmpty()) {
                     double price = Double.parseDouble(priceStr);
                     // create no row
-                    TextView no = new TextView(MainActivity.this);
-                    no.setText(String.valueOf(itemsTable.getChildCount()));
-                    no.setPadding(8, 8, 8, 8); // กำหนด padding
                     //add data item { name , price }to data_item
-                    HashMap<String, Object> item1 = new HashMap<>();
-                    item1.put("id", itemsTable.getChildCount());
-                    item1.put("product", name);
-                    item1.put("price", price);
-                    data_item.add(item1);
+                    //add item to db
+                    dbh.insertItem(name, price);
+                    //get all item from db
+                    updateItemGroup();
                     Log.d("MainActivity_data_item", "data_item: " + data_item);
-                    // Add a new row to the table
-                    TableRow row = new TableRow(MainActivity.this);
-                    TextView itemNameView = new TextView(MainActivity.this);
-                    TextView itemPriceView = new TextView(MainActivity.this);
 
-                    // กำหนดความยาวสูงสุดของแต่ละบรรทัด
-                    int maxLineLength = 15;
-                    StringBuilder formattedItemName = new StringBuilder();
-                    while (name.length() > maxLineLength) {
-                        formattedItemName.append(name, 0, maxLineLength).append("\n");
-                        name = name.substring(maxLineLength);
-                    }
-
-                    if (!name.isEmpty()) {
-                        formattedItemName.append(name);
-                    }
-                    itemNameView.setText(formattedItemName.toString());
-                    itemNameView.setPadding(12, 25, 12, 25); // กำหนด padding
-
-                    itemPriceView.setText(String.format("%.2f", price));
-                    itemPriceView.setPadding(12, 25, 12, 25); // กำหนด padding
-
-                    row.addView(no);
-                    row.addView(itemNameView);
-                    row.addView(itemPriceView);
-
-                    itemsTable.addView(row);
-
-                    // Add to total cost
-                    totalCost += price;
-
-                    // Clear input fields after adding
-                    itemName.setText("");
-                    itemPrice.setText("");
 
 
                 } else {
@@ -125,20 +93,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+
         // Clear button click listener
         clearButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //clear row ตั้งแต่ 1 ถึง สุดท้าย
+                // delete all item in db
+                dbh.deleteAllItem();
+                // Clear all rows in the table
                 itemsTable.removeViews(1, itemsTable.getChildCount() - 1);
-                totalCost = 0;
-                totalResult.setText("Total cost: 0.00");
+                updateItemGroup();
             }
         });
 
         addPerson.setOnClickListener(new View.OnClickListener() {
-
-
             @Override
             public void onClick(View v) {
                 // รับค่าจาก EditText
@@ -151,9 +120,11 @@ public class MainActivity extends AppCompatActivity {
                     item1.put("name", inputText);
                     item1.put("price", count);
                     inputDataList.add(item1);
+                    //addPerson to db
+                    dbh.insertPerson(inputText, 0);
 
                     // เรียกฟังก์ชันเพื่ออัพเดตข้อมูลใน TextView
-                    updateTextView();
+                    updateTextView(tablePerson);
 
                     // เคลียร์ช่อง EditText หลังกรอกข้อมูล
                     Person.setText("");
@@ -162,76 +133,16 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            private void updateTextView() {
-                // Clear previous rows in the table
-                tablePerson.removeViews(1, tablePerson.getChildCount() - 1);
+        });
 
-                for (HashMap<String, Object> data : inputDataList) {
-                    // Create a new TableRow
-                    TableRow tableRow = new TableRow(MainActivity.this);
-                    tableRow.setLayoutParams(new TableRow.LayoutParams(
-                            TableRow.LayoutParams.MATCH_PARENT,
-                            TableRow.LayoutParams.WRAP_CONTENT
-                    ));
-
-                    // Create TextView for the data
-                    TextView textView = new TextView(MainActivity.this);
-                    textView.setText((String) data.get("name"));
-                    TableRow.LayoutParams textParams = new TableRow.LayoutParams(
-                            0, // Width: 0 for weight distribution
-                            TableRow.LayoutParams.WRAP_CONTENT,
-                            1.0f // Weight to take up remaining space
-                    );
-                    textView.setLayoutParams(textParams);
-                    //set padding
-                    textView.setPadding(20, 25, 12, 25);
-                    tableRow.addView(textView);
-                    // add column price
-                    TextView textViewPrice = new TextView(MainActivity.this);
-                    textViewPrice.setText(String.valueOf(data.get("price")));
-                    TableRow.LayoutParams textParamsPrice = new TableRow.LayoutParams(
-                            0, // Width: 0 for weight distribution
-                            TableRow.LayoutParams.WRAP_CONTENT,
-                            1.0f // Weight to take up remaining space
-                    );
-                    textViewPrice.setLayoutParams(textParamsPrice);
-                    //set padding
-                    textViewPrice.setPadding(20, 25, 12, 25);
-                    tableRow.addView(textViewPrice);
-
-
-                    // Create button and set text
-                    Button button = new Button(MainActivity.this);
-                    button.setText("เลือกสินค้า");
-
-// Set background color and rounded corners
-                    button.setBackground(getResources().getDrawable(R.drawable.rounded_button, null));
-                    button.setTextColor(getResources().getColor(R.color.white, null)); // Set text color
-                    button.setPadding(20, 10, 20, 10); // Add padding for better appearance
-
-// Set click event for the button
-                    button.setOnClickListener(view -> showSettingsDialog(data));
-
-// Set layout parameters for the button
-                    TableRow.LayoutParams buttonParams = new TableRow.LayoutParams(
-                            TableRow.LayoutParams.WRAP_CONTENT, // Width based on content
-                            TableRow.LayoutParams.WRAP_CONTENT // Height
-                    );
-                    buttonParams.setMargins(20, 0, 200, 10); // Adjust margin as needed
-                    button.setLayoutParams(buttonParams); // Set the layout parameters to the button
-
-// Add button to the TableRow
-                    tableRow.addView(button);
-
-
-
-
-                    // Add the row to the TableLayout
-                    tablePerson.addView(tableRow);
-                }
+        clear_person.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //call function clearData
+                dbh.deleteAllPerson();
+                // update table
+                updateTextView(tablePerson);
             }
-
-
         });
 
 
@@ -248,12 +159,211 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void updateItemGroup() {
+        // Clear previous rows in the table
+        itemsTable.removeViews(1, itemsTable.getChildCount() - 1);
+        //get all item from db
+        Cursor res = dbh.getAllItem();
+        ArrayList<HashMap<String, Object>> data_item_query = new ArrayList<>();
+        if (res.getCount() == 0) {
+            // show message
+            Toast.makeText(MainActivity.this, "No data", Toast.LENGTH_SHORT).show();
+            return;
+        } else {
+            while (res.moveToNext()) {
+                HashMap<String, Object> item2 = new HashMap<>();
+                item2.put("id", res.getInt(0));
+                item2.put("product", res.getString(1));
+                item2.put("price", res.getDouble(2));
+                data_item_query.add(item2);
+            }
+            data_item.clear();
+            data_item.addAll(data_item_query);
+            Log.d("MainActivity_data_item", "data_item: " + data_item_query);
+            // LOOP THROUGH THE DATA AND ADD TO THE TABLE
+            for (HashMap<String, Object> data : data_item_query) {
+                // Create a new TableRow
+                TableRow tableRow = new TableRow(MainActivity.this);
+                tableRow.setLayoutParams(new TableRow.LayoutParams(
+                        TableRow.LayoutParams.MATCH_PARENT,
+                        TableRow.LayoutParams.WRAP_CONTENT
+                ));
+
+                // Create TextView for the data
+                TextView textView = new TextView(MainActivity.this);
+                textView.setText((String) data.get("product"));
+                TableRow.LayoutParams textParams = new TableRow.LayoutParams(
+                        0, // Width: 0 for weight distribution
+                        TableRow.LayoutParams.WRAP_CONTENT,
+                        1.0f // Weight to take up remaining space
+                );
+                textView.setLayoutParams(textParams);
+                //set padding
+                textView.setPadding(20, 25, 12, 25);
+                tableRow.addView(textView);
+
+                // Create TextView for the data
+                TextView textViewPrice = new TextView(MainActivity.this);
+                textViewPrice.setText(String.valueOf(data.get("price")));
+                TableRow.LayoutParams textParamsPrice = new TableRow.LayoutParams(
+                        0, // Width: 0 for weight distribution
+                        TableRow.LayoutParams.WRAP_CONTENT,
+                        1.0f // Weight to take up remaining space
+                );
+                textViewPrice.setLayoutParams(textParamsPrice);
+                //set padding
+                textViewPrice.setPadding(20, 25, 12, 25);
+                tableRow.addView(textViewPrice);
+
+                // Add the row to the TableLayout
+                itemsTable.addView(tableRow);
+            }
+
+            //intialize name and price
+            itemName.setText("");
+            itemPrice.setText("");
+
+        }
+    }
+
+    private void updateTextView(ViewGroup tablePerson) {
+        // Clear previous rows in the table
+        tablePerson.removeViews(1, tablePerson.getChildCount() - 1);
+        //get person from db
+        Cursor res = dbh.getAllPerson();
+        ArrayList<HashMap<String, Object>> data_person_query = new ArrayList<>();
+        if (res.getCount() == 0) {
+            // show message
+            Toast.makeText(MainActivity.this, "No data", Toast.LENGTH_SHORT).show();
+            return;
+        } else {
+            while (res.moveToNext()) {
+                HashMap<String, Object> item1 = new HashMap<>();
+                item1.put("id", res.getInt(0));
+                item1.put("name", res.getString(1));
+                item1.put("price", res.getInt(2));
+                //get selected item from db
+                int id_person = res.getInt(0);
+                Cursor res_item = dbh.getSelectedItem(id_person);
+                ArrayList<HashMap<String, Object>> selected_item_query = new ArrayList<>();
+
+                    while (res_item.moveToNext()) {
+                        HashMap<String, Object> item2 = new HashMap<>();
+                        item2.put("id", res_item.getInt(0));
+                        item2.put("product", res_item.getString(1));
+                        item2.put("price", res_item.getDouble(2));
+                        selected_item_query.add(item2);
+                    }
+                    item1.put("select", selected_item_query);
+
+                data_person_query.add(item1);
+            }
+            Log.d("data_person_query", "data_person_query: " + data_person_query);
+
+            inputDataList.clear();
+            inputDataList.addAll(data_person_query);
+            for (HashMap<String, Object> data : inputDataList) {
+                // Create a new TableRow
+                TableRow tableRow = new TableRow(MainActivity.this);
+                tableRow.setLayoutParams(new TableRow.LayoutParams(
+                        TableRow.LayoutParams.MATCH_PARENT,
+                        TableRow.LayoutParams.WRAP_CONTENT
+                ));
+
+                //create column no
+                TextView textViewNo = new TextView(MainActivity.this);
+                textViewNo.setText(String.valueOf(data.get("id")));
+                TableRow.LayoutParams textParamsNo = new TableRow.LayoutParams(
+                        0, // Width: 0 for weight distribution
+                        TableRow.LayoutParams.WRAP_CONTENT,
+                        1.0f // Weight to take up remaining space
+                );
+                textViewNo.setLayoutParams(textParamsNo);
+                //set padding
+                textViewNo.setPadding(20, 25, 12, 25);
+                tableRow.addView(textViewNo);
+
+                // Create TextView for the data
+                TextView textView = new TextView(MainActivity.this);
+                textView.setText((String) data.get("name"));
+                TableRow.LayoutParams textParams = new TableRow.LayoutParams(
+                        0, // Width: 0 for weight distribution
+                        TableRow.LayoutParams.WRAP_CONTENT,
+                        1.0f // Weight to take up remaining space
+                );
+                textView.setLayoutParams(textParams);
+                //set padding
+                textView.setPadding(20, 25, 12, 25);
+                tableRow.addView(textView);
+                // add column price
+                TextView textViewPrice = new TextView(MainActivity.this);
+                textViewPrice.setText(String.valueOf(data.get("price")));
+                TableRow.LayoutParams textParamsPrice = new TableRow.LayoutParams(
+                        0, // Width: 0 for weight distribution
+                        TableRow.LayoutParams.WRAP_CONTENT,
+                        1.0f // Weight to take up remaining space
+                );
+                textViewPrice.setLayoutParams(textParamsPrice);
+                //set padding
+                textViewPrice.setPadding(20, 25, 12, 25);
+                tableRow.addView(textViewPrice);
+
+
+                // Create button and set text
+                Button button = new Button(MainActivity.this);
+                button.setText("เลือกสินค้า");
+
+// Set background color and rounded corners
+                button.setBackground(getResources().getDrawable(R.drawable.rounded_button, null));
+                button.setTextColor(getResources().getColor(R.color.white, null)); // Set text color
+                button.setPadding(20, 10, 20, 10); // Add padding for better appearance
+
+// Set click event for the button
+                button.setOnClickListener(view -> showSettingsDialog(data));
+
+// Set layout parameters for the button
+                TableRow.LayoutParams buttonParams = new TableRow.LayoutParams(
+                        TableRow.LayoutParams.WRAP_CONTENT, // Width based on content
+                        TableRow.LayoutParams.WRAP_CONTENT // Height
+                );
+                buttonParams.setMargins(20, 0, 200, 10); // Adjust margin as needed
+                button.setLayoutParams(buttonParams); // Set the layout parameters to the button
+
+// Add button to the TableRow
+                tableRow.addView(button);
+
+                //add button delete person
+                Button buttonDelete = new Button(MainActivity.this);
+                buttonDelete.setText("ลบ");
+                buttonDelete.setBackground(getResources().getDrawable(R.drawable.rounded_btn_red, null));
+                buttonDelete.setTextColor(getResources().getColor(R.color.white, null)); // Set text color
+                buttonDelete.setPadding(20, 10, 20, 10); // Add padding for better appearance
+                // Set click event for the button
+//                        Log.d("MainActivity_user_person", "data: " + data.get("id"));
+                buttonDelete.setOnClickListener(view -> {
+                    dbh.deletePerson((int) data.get("id"));
+                    updateTextView(tablePerson);
+                });
+                TableRow.LayoutParams buttonParamsDelete = new TableRow.LayoutParams(
+                        TableRow.LayoutParams.WRAP_CONTENT, // Width based on content
+                        TableRow.LayoutParams.WRAP_CONTENT // Height
+                );
+                buttonParamsDelete.setMargins(20, 0, 10, 10); // Adjust margin as needed
+                buttonDelete.setLayoutParams(buttonParamsDelete); // Set the layout parameters to the button
+                tableRow.addView(buttonDelete);
+
+                // Add the row to the TableLayout
+                tablePerson.addView(tableRow);
+            }
+
+        }
+    }
 
     private void showSettingsDialog(HashMap<String, Object> data) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("เลือกสินค้า");
         TableLayout tablePerson = findViewById(R.id.tablePerson);
-
+//        dbh.deleteSelectedItem((int) data.get("id"));
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
@@ -272,7 +382,21 @@ public class MainActivity extends AppCompatActivity {
             double price = (double) item.get("price");
             CheckBox checkBox = new CheckBox(this);
             checkBox.setText(product + " - " + price);
-            for(HashMap<String, Object> item1 : (ArrayList<HashMap<String, Object>>) selectedItems){
+            // get data from db
+            Cursor res = dbh.getSelectedItem((int) data.get("id"));
+            ArrayList<HashMap<String, Object>> selected_item_query = new ArrayList<>();
+                while (res.moveToNext()) {
+                    HashMap<String, Object> item2 = new HashMap<>();
+                    item2.put("id", res.getInt(0));
+                    item2.put("product", res.getString(1));
+                    item2.put("price", res.getDouble(2));
+                    selected_item_query.add(item2);
+                }
+
+
+
+            Log.d("selected_item_query_dialog", "data item: " + selected_item_query);
+            for(HashMap<String, Object> item1 : (ArrayList<HashMap<String, Object>>) selected_item_query){
                 if( item1.get("product").equals(product)){
                     checkBox.setChecked(true);
                 }
@@ -283,6 +407,7 @@ public class MainActivity extends AppCompatActivity {
         for (HashMap<String, Object> person : inputDataList) {
             int current_price = 0;
             person.put("price", current_price);
+            dbh.UpdatePricePerson((int) person.get("id"), current_price);
         }
 
         builder.setView(layout);
@@ -297,13 +422,16 @@ public class MainActivity extends AppCompatActivity {
                 // ตรวจสอบว่า CheckBox ใดถูกเลือก
                 ArrayList<HashMap<String, Object>> selectedItems = new ArrayList<>();
 //                ArrayList<HashMap<String, Object>>  = new ArrayList<>();
+                int id_person = (int) data.get("id");
                 for (int i = 0; i < checkBoxList.size(); i++) {
                     if (checkBoxList.get(i).isChecked()) {
                         // เพิ่มรายการที่ถูกเลือกลงใน ArrayList
                         Log.d("MainActivity_user_person", "Selected items: " + i);
                         selectedItems.add(data_item.get(i));
-
-                     }
+                        dbh.insertPersonItem(id_person, (int) data_item.get(i).get("id"));
+                    }else {
+                        dbh.RemovePersonItem(id_person, (int) data_item.get(i).get("id"));
+                    }
                 }
                 data.put("select", selectedItems);
                 //loop in data_item
@@ -329,7 +457,6 @@ public class MainActivity extends AppCompatActivity {
                         if (selectedItems_person == null) {
                             selectedItems_person = new ArrayList<>();
                         }
-
                         // นับจำนวนคนที่เลือก product เดียวกัน
                         for (HashMap<String, Object> item3 : (ArrayList<HashMap<String, Object>>) selectedItems_person) {
                             if (productName.equals(item3.get("product"))) {
@@ -357,7 +484,7 @@ public class MainActivity extends AppCompatActivity {
                     // อัปเดตราคาในแต่ละบุคคล
                     for (HashMap<String, Object> person : inputDataList) {
                         Object selectedItems_person = person.get("select");
-
+                        id_person = (int) person.get("id");
                         if (selectedItems_person == null) {
                             selectedItems_person = new ArrayList<>();
                         }
@@ -378,87 +505,19 @@ public class MainActivity extends AppCompatActivity {
                                 double new_price = current_price + price_per_person;
                                 person.put("price", new_price);
 
+                                dbh.UpdatePricePerson(id_person, (int) new_price);
                                 Log.d("MainActivity_user_price", "Updated price for person: " + new_price);
                             }
                         }
                     }
                 }
-
-
-
-
-
-
-                updateTextView();
+                updateTextView(tablePerson);
                 // แปลง ArrayList เป็น String
                 Log.d("MainActivity_user_person", "Selected items: " + selectedItems);
                 Log.d("MainActivity_user_person", "Person Selected items: " + inputDataList);
 
             }
-            private void updateTextView() {
-                // Clear previous rows in the table
-                tablePerson.removeViews(1, tablePerson.getChildCount() - 1);
 
-                for (HashMap<String, Object> data : inputDataList) {
-                    // Create a new TableRow
-                    TableRow tableRow = new TableRow(MainActivity.this);
-                    tableRow.setLayoutParams(new TableRow.LayoutParams(
-                            TableRow.LayoutParams.MATCH_PARENT,
-                            TableRow.LayoutParams.WRAP_CONTENT
-                    ));
-
-                    // Create TextView for the data
-                    TextView textView = new TextView(MainActivity.this);
-                    textView.setText((String) data.get("name"));
-                    TableRow.LayoutParams textParams = new TableRow.LayoutParams(
-                            0, // Width: 0 for weight distribution
-                            TableRow.LayoutParams.WRAP_CONTENT,
-                            1.0f // Weight to take up remaining space
-                    );
-                    textView.setLayoutParams(textParams);
-                    //set padding
-                    textView.setPadding(20, 25, 12, 25);
-                    tableRow.addView(textView);
-                    // add column price
-                    TextView textViewPrice = new TextView(MainActivity.this);
-                    textViewPrice.setText(String.valueOf(data.get("price")));
-                    TableRow.LayoutParams textParamsPrice = new TableRow.LayoutParams(
-                            0, // Width: 0 for weight distribution
-                            TableRow.LayoutParams.WRAP_CONTENT,
-                            1.0f // Weight to take up remaining space
-                    );
-                    textViewPrice.setLayoutParams(textParamsPrice);
-                    //set padding
-                    textViewPrice.setPadding(20, 25, 12, 25);
-                    tableRow.addView(textViewPrice);
-
-
-                    // Create button and set text
-                    Button button = new Button(MainActivity.this);
-                    button.setText("Setting");
-
-                    // Set click event for the button
-                    button.setOnClickListener(view -> showSettingsDialog(data)
-                            // Do something when the button is clicked
-                    );
-
-                    // Set layout parameters for the button
-                    TableRow.LayoutParams buttonParams = new TableRow.LayoutParams(
-                            TableRow.LayoutParams.WRAP_CONTENT, // Width based on content
-                            TableRow.LayoutParams.WRAP_CONTENT // Height
-                    );
-                    buttonParams.setMargins(20, 0, 200, 0); // Adjust margin as needed
-                    button.setLayoutParams(buttonParams); // Set the layout parameters to the button
-
-                    // Add button to the TableRow
-                    tableRow.addView(button);
-
-
-
-                    // Add the row to the TableLayout
-                    tablePerson.addView(tableRow);
-                }
-            }
         });
 
         // ปุ่ม Cancel
